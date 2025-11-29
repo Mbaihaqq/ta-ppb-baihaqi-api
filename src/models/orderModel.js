@@ -2,6 +2,7 @@ import supabase from "../config/supabaseClient.js";
 
 export const OrderModel = {
   async create(order) {
+    // Pastikan req.body di frontend mengirim field yang sesuai dengan tabel (user_name, outlet_id, weight, dll)
     const { data, error } = await supabase
       .from("orders")
       .insert([order])
@@ -13,18 +14,14 @@ export const OrderModel = {
   },
 
   async getAll() {
+    // Mengambil data order beserta detail outletnya (relasi foreign key)
     const { data, error } = await supabase
       .from("orders")
       .select(`
-        id,
-        user_name,
-        pickup_date,
-        finish_date,
-        status,
-        weight,
-        price,
+        *,
         laundry_outlets ( id, name, address, phone )
-      `);
+      `)
+      .order('pickup_date', { ascending: false });
 
     if (error) throw error;
     return data;
@@ -34,13 +31,7 @@ export const OrderModel = {
     const { data, error } = await supabase
       .from("orders")
       .select(`
-        id,
-        user_name,
-        pickup_date,
-        finish_date,
-        status,
-        weight,
-        price,
+        *,
         laundry_outlets ( id, name, address, phone )
       `)
       .eq("id", id)

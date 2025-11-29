@@ -22,6 +22,7 @@ export const OutletController = {
   async getById(req, res) {
     try {
       const outlet = await OutletModel.getById(req.params.id);
+      if (!outlet) return res.status(404).json({ error: "Outlet not found" });
       res.json(outlet);
     } catch (err) {
       res.status(404).json({ error: err.message });

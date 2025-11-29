@@ -1,35 +1,37 @@
-const express = require("express");
-const cors = require("cors");
-const { Pool } = require("pg");
-require("dotenv").config();
+import express from 'express';
+import cors from 'cors';
+import pg from 'pg';
+import dotenv from 'dotenv';
+
+// Config env
+dotenv.config();
+
+// Inisialisasi Pool Database (Cara Import untuk pg)
+const { Pool } = pg;
 
 const app = express();
 
-// --- 1. CONFIG MIDLEWARE (CORS & JSON) ---
-// Taruh paling atas agar tidak kena block browser
+// --- 1. CONFIG MIDDLEWARE ---
 app.use(cors({
-  origin: "*", // Mengizinkan akses dari semua frontend
+  origin: "*", 
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 app.use(express.json());
 
-// --- 2. DATABASE CONNECTION (SUPABASE) ---
-// Hanya gunakan satu definisi 'pool'. 
-// Setting 'rejectUnauthorized: false' WAJIB untuk Supabase di Vercel.
+// --- 2. DATABASE CONNECTION ---
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL,
   ssl: {
-    rejectUnauthorized: false, 
+    rejectUnauthorized: false, // Wajib buat Supabase
   },
 });
 
 // --- 3. ROUTES API ---
 
-// Cek status server
 app.get("/", (req, res) => {
-  res.send("Backend API Laundry is Running!");
+  res.send("Backend API Laundry is Running (ESM Mode)!");
 });
 
 // A. Get All Outlets
@@ -63,7 +65,6 @@ app.post("/api/orders", async (req, res) => {
   try {
     const { user_name, outlet_id, status, weight, price } = req.body;
     
-    // Validasi sederhana
     if (!outlet_id) return res.status(400).json({ error: "Outlet ID is required" });
 
     const result = await pool.query(
@@ -77,7 +78,7 @@ app.post("/api/orders", async (req, res) => {
   }
 });
 
-// D. Get All Orders (dengan Join nama Outlet)
+// D. Get All Orders
 app.get("/api/orders", async (req, res) => {
   try {
     const query = `
@@ -94,7 +95,7 @@ app.get("/api/orders", async (req, res) => {
   }
 });
 
-// E. Get Order Detail (Specific ID)
+// E. Get Order Detail
 app.get("/api/orders/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -119,4 +120,5 @@ app.get("/api/orders/:id", async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-module.exports = app;
+// Export Default untuk Vercel
+export default app;
